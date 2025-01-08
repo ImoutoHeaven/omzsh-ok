@@ -3,11 +3,11 @@
 # 安装 zsh
 if ! command -v zsh &> /dev/null; then
     if command -v apt &> /dev/null; then
-        sudo apt update && sudo apt install -y zsh
+        sudo apt update && sudo apt install -y zsh expect
     elif command -v yum &> /dev/null; then
-        sudo yum -y install zsh
+        sudo yum -y install zsh expect
     elif command -v brew &> /dev/null; then
-        brew install zsh
+        brew install zsh expect
     else
         echo "无法安装 zsh，请手动安装"
         exit 1
@@ -20,8 +20,22 @@ if [ -d ~/.oh-my-zsh ]; then
     mv ~/.zshrc ~/.zshrc.backup
 fi
 
-# 安装 oh-my-zsh
-RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+# 创建 expect 脚本
+cat > install_zsh.exp << 'EOF'
+#!/usr/bin/expect -f
+set timeout -1
+spawn sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+expect "Do you want to change your default shell to zsh? \\\[Y/n\\\]"
+send "y\r"
+expect eof
+EOF
+
+# 使用 expect 运行安装脚本
+chmod +x install_zsh.exp
+./install_zsh.exp
+
+# 删除临时的 expect 脚本
+rm install_zsh.exp
 
 # 安装插件
 git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
@@ -29,11 +43,6 @@ git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:
 
 # 修改 .zshrc 配置
 sed -i.bak 's/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting command-not-found)/' ~/.zshrc
-
-# 自动切换默认 shell 为 zsh
-if [ "$SHELL" != "$(which zsh)" ]; then
-    echo "y" | chsh -s $(which zsh)
-fi
 
 echo "安装完成！请执行以下操作："
 echo "1. 输入 'zsh' 启动新的 zsh 会话"
