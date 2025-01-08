@@ -30,9 +30,9 @@ git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:
 # 修改 .zshrc 配置
 sed -i.bak 's/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting command-not-found)/' ~/.zshrc
 
-# 切换默认 shell 为 zsh
+# 自动切换默认 shell 为 zsh
 if [ "$SHELL" != "$(which zsh)" ]; then
-    chsh -s $(which zsh)
+    echo "y" | chsh -s $(which zsh)
 fi
 
 echo "安装完成！请执行以下操作："
